@@ -39,7 +39,7 @@ const relay = (on: On, status = 202): Request[] => {
 }
 
 const linkedChannel = async ($: Engine): Promise<{ id: string; key: string }> => {
-  const { text } = await $.command.run({ command: 'voice-link', args: '' } as never)
+  const { text } = await $.command.run({ command: 'narrator', args: 'link' } as never)
   const match = /\/s\/([A-Za-z0-9_-]+)#k=([A-Za-z0-9_-]+)/.exec(text ?? '')
   if (match === null) throw new Error(`no page link in: ${text}`)
   return { id: match[1]!, key: match[2]! }
@@ -120,26 +120,25 @@ test('default level appends the speech rules section', async ($, on) => {
   expect(sections.map(s => s.id)).toEqual(['intro', 'narrator:rules'])
 })
 
-test('/voice-link shows a stable page URL with the key in the fragment', async ($, on) => {
+test('/narrator link shows a stable page URL with the key in the fragment', async ($, on) => {
   mock.store(on)
   relay(on)
 
   const first = await linkedChannel($)
   const again = await linkedChannel($)
-  const { text } = await $.command.run({ command: 'voice-link', args: '' } as never)
+  const { text } = await $.command.run({ command: 'narrator', args: 'link' } as never)
 
   expect(again).toEqual(first)
   expect(first.key.length).toBe(43)
   expect(text).toContain(`${RELAY}/s/${first.id}#k=${first.key}`)
 })
 
-test('/voice sets the level and rejects unknown ones', async ($, on) => {
+test('/narrator level sets the level and rejects unknown ones', async ($, on) => {
   mock.store(on)
-  on('ui.status', async () => ({ value: undefined }) as never)
 
-  const unknown = await $.command.run({ command: 'voice', args: 'loud' } as never)
-  const set = await $.command.run({ command: 'voice', args: 'quiet' } as never)
-  const shown = await $.command.run({ command: 'voice', args: '' } as never)
+  const unknown = await $.command.run({ command: 'narrator', args: 'level loud' } as never)
+  const set = await $.command.run({ command: 'narrator', args: 'level quiet' } as never)
+  const shown = await $.command.run({ command: 'narrator', args: 'level' } as never)
 
   expect(unknown.text).toContain('Unknown level')
   expect(set.text).toContain('quiet')

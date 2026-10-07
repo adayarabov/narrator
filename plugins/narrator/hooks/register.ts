@@ -275,28 +275,18 @@ export const register: Register = (on, options) => {
         required: ['text'],
       },
     })
-    await $.command.register({
-      name: 'voice-link',
-      description: 'Show the link to the page that speaks this session aloud',
-      immediate: true,
-    })
-    await $.command.register({
-      name: 'voice-usage',
-      description: 'Show tokens and cost the side chat forks have spent in this session',
-      immediate: true,
-    })
-    await $.command.register({
-      name: 'voice',
-      description: 'Set how much Claude speaks aloud: off, quiet, normal, chatty',
-      argumentHint: '[off|quiet|normal|chatty]',
-      immediate: true,
-    })
-    await $.command.register({
-      name: 'narrator',
-      description: 'Turn narrator on or off (speech, side chat, page channel) or show its status',
-      argumentHint: '[on|off|status]',
-      immediate: true,
-    })
+    // One command for everything: Claude Code has a built-in /voice, and a refused
+    // registration must not stop the channel from opening.
+    try {
+      await $.command.register({
+        name: 'narrator',
+        description: 'Narrator: on, off, status, link, usage, or level off|quiet|normal|chatty',
+        argumentHint: '[on|off|status|link|usage|level <off|quiet|normal|chatty>]',
+        immediate: true,
+      })
+    } catch (error) {
+      $.ui.log(`narrator: /narrator is unavailable: ${String(error)}`)
+    }
     if (await isEnabled($)) {
       try {
         $.ui.toast(`Narrator: ${await startNarrator($, serviceUrl)}`)
@@ -318,8 +308,8 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'narrator' }, async ($, e) => {
-    const wanted = e.args.trim().toLowerCase() || 'status'
-    if (wanted === 'on') {
+    const [action = 'status', argument = ''] = e.args.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    if (action === 'on') {
       await $.store.set(ENABLED_KEY, true)
       try {
         const link = await startNarrator($, serviceUrl)
@@ -328,12 +318,27 @@ export const register: Register = (on, options) => {
         return { text: `Narrator is on, but the relay is unreachable: ${String(error)}` }
       }
     }
-    if (wanted === 'off') {
+    if (action === 'off') {
       await $.store.set(ENABLED_KEY, false)
       await stopNarrator($, serviceUrl).catch(() => undefined)
       return { text: 'Narrator is off: no speech, the side chat is not read and the page channel is closed. /narrator on brings it back with the same link.' }
     }
-    if (wanted !== 'status') return { text: `Unknown argument "${wanted}". Use /narrator on, off or status.` }
+    if (action === 'link') {
+      return { text: `Open this page to hear the session (the key after # never reaches the server):\n${pageUrl(serviceUrl, await loadChannel($))}` }
+    }
+    if (action === 'usage') {
+      const stored = await $.store.get(await usageKey($))
+      return { text: describeUsage(isForkUsage(stored) ? stored : emptyUsage(), await $.session.model()) }
+    }
+    if (action === 'level') {
+      if (argument === '') return { text: `Voice level: ${await readLevel($)}. Options: ${LEVELS.join(', ')}.` }
+      if (!isLevel(argument)) return { text: `Unknown level "${argument}". Options: ${LEVELS.join(', ')}.` }
+      await $.store.set(LEVEL_KEY, argument)
+      return { text: `Voice level set to ${argument}; it applies from the next request.` }
+    }
+    if (action !== 'status') {
+      return { text: `Unknown argument "${action}". Use /narrator on, off, status, link, usage or level <off|quiet|normal|chatty>.` }
+    }
 
     const usage = await $.store.get(await usageKey($))
     const lines = [
@@ -346,15 +351,6 @@ export const register: Register = (on, options) => {
     ]
     return { text: lines.join('\n') }
   })
-
-  on('command.run', { command: 'voice-usage' }, async $ => {
-    const stored = await $.store.get(await usageKey($))
-    return { text: describeUsage(isForkUsage(stored) ? stored : emptyUsage(), await $.session.model()) }
-  })
-
-  on('command.run', { command: 'voice-link' }, async $ => ({
-    text: `Open this page to hear the session (the key after # never reaches the server):\n${pageUrl(serviceUrl, await loadChannel($))}`,
-  }))
 
   on('session.end', async ($, e, next) => {
     await closeChannel($, serviceUrl)
@@ -378,16 +374,6 @@ export const register: Register = (on, options) => {
 
     const section = { id: 'narrator:rules', text: `${BASE_RULES}\n\n${LEVEL_RULES[level]}`, scope: 'session' } as const
     return { sections: [...composed.sections, section] }
-  })
-
-  on('command.run', { command: 'voice' }, async ($, e) => {
-    const wanted = e.args.trim().toLowerCase()
-    if (wanted === '') return { text: `Voice level: ${await readLevel($)}. Options: ${LEVELS.join(', ')}.` }
-    if (!isLevel(wanted)) return { text: `Unknown level "${wanted}". Options: ${LEVELS.join(', ')}.` }
-
-    await $.store.set(LEVEL_KEY, wanted)
-    $.ui.status(wanted === 'off' ? undefined : `voice: ${wanted}`)
-    return { text: `Voice level set to ${wanted}; it applies from the next request.` }
   })
 
   on('classic.Notification', async ($, e, next) => {

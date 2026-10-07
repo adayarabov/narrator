@@ -2,7 +2,7 @@
 
 A Claude Code mod that lets Claude talk to you while it works, as on a call.
 
-- **Narration.** Claude gets a `say` tool and rules for when to use it: the plan, a changed hypothesis, a finding, a real fork in the road, the outcome. Routine reads and commands stay silent. `/voice off|quiet|normal|chatty` sets how talkative it is.
+- **Narration.** Claude gets a `say` tool and rules for when to use it: the plan, a changed hypothesis, a finding, a real fork in the road, the outcome. Routine reads and commands stay silent. `/narrator level off|quiet|normal|chatty` sets how talkative it is.
 - **Listening page.** At session start the mod shows a link; open it in a browser and press *Enable sound*. Lines are spoken sentence by sentence, with in-browser Piper voices or server-side Silero voices.
 - **Side chat.** Type or talk on the page (call mode: pick up once, then just speak). A fork of the session answers without touching the main thread; instructions are handed to Claude before its next step, and a stop asks you to confirm before it interrupts the task.
 
@@ -20,16 +20,19 @@ Or from this repository alone:
 /plugin install narrator@narrator
 ```
 
-Then start a session, open the link from the toast (or run `/voice-link`), and press *Enable sound*.
+Then start a session, open the link from the toast (or run `/narrator link`), and press *Enable sound*.
 
 ## Commands
 
+Everything is one command, `/narrator` (Claude Code has its own built-in `/voice`):
+
 | Command | |
 |---|---|
-| `/narrator [on\|off\|status]` | Turn narrator on or off as a whole (speech, side chat, page channel), or show its state |
-| `/voice-link` | The page link for this session |
-| `/voice [off\|quiet\|normal\|chatty]` | How much Claude speaks |
-| `/voice-usage` | Tokens and cost the side chat forks have spent in this session |
+| `/narrator` or `/narrator status` | Whether it is on, voice level, side chat, relay, page link and side-chat spend |
+| `/narrator on` / `/narrator off` | Turn narrator on or off as a whole: speech, side chat and the page channel. The page link stays the same |
+| `/narrator link` | The page link for this session |
+| `/narrator level [off\|quiet\|normal\|chatty]` | How much Claude speaks |
+| `/narrator usage` | Tokens and cost the side-chat forks have spent in this session |
 
 ## Privacy
 
@@ -43,4 +46,4 @@ By default the mod uses `https://narrator.trq.one`. To use your own relay, set t
 
 ## Cost
 
-Each side-chat message is one fork of the session: one request over the session's context, read from the prompt cache. With a large context that is about $0.10 per message on Claude Opus; `/voice-usage` shows the real numbers.
+Each side-chat message is one fork of the session: one request over the session's context, read from the prompt cache. With a large context that is about $0.10 per message on Claude Opus; `/narrator usage` shows the real numbers.
