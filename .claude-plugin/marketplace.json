@@ -1,0 +1,25 @@
+{
+  "name": "narrator",
+  "owner": {
+    "name": "adayarabov",
+    "url": "https://github.com/adayarabov"
+  },
+  "metadata": {
+    "description": "Claude talks to you while it works"
+  },
+  "plugins": [
+    {
+      "name": "narrator",
+      "source": "./plugins/narrator",
+      "description": "Claude talks to you while it works: spoken narration in a browser page, and a voice side chat that answers questions and passes instructions without interrupting the task",
+      "version": "0.4.0",
+      "category": "productivity",
+      "keywords": [
+        "voice",
+        "tts",
+        "narration",
+        "side-chat"
+      ]
+    }
+  ]
+}

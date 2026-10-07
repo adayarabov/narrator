@@ -1,0 +1,27 @@
+{
+  "name": "narrator",
+  "version": "0.4.0",
+  "description": "Claude talks to you while it works: spoken narration in a browser page, and a voice side chat that answers questions and passes instructions without interrupting the task",
+  "author": {
+    "name": "adayarabov",
+    "url": "https://github.com/adayarabov"
+  },
+  "homepage": "https://github.com/adayarabov/narrator",
+  "repository": "https://github.com/adayarabov/narrator",
+  "license": "MIT",
+  "keywords": [
+    "voice",
+    "tts",
+    "narration",
+    "side-chat",
+    "mod"
+  ],
+  "userConfig": {
+    "serviceUrl": {
+      "type": "string",
+      "title": "Relay URL",
+      "description": "Base URL of the narrator relay that serves the listening page",
+      "default": "https://narrator.trq.one"
+    }
+  }
+}
