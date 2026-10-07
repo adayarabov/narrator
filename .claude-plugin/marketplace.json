@@ -12,7 +12,7 @@
       "name": "narrator",
       "source": "./plugins/narrator",
       "description": "Claude talks to you while it works: spoken narration in a browser page, and a voice side chat that answers questions and passes instructions without interrupting the task",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "category": "productivity",
       "keywords": [
         "voice",

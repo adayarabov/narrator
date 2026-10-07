@@ -358,7 +358,10 @@ export const register: Register = (on, options) => {
   }).catch(($, e, next) => next(e))
 
   on('tool.call', { tool: SAY_TOOL }, async ($, e) => {
-    const input = e as { text?: unknown }
+    const input = e as { text?: unknown; agentId?: unknown }
+    // Only the main thread narrates. A side-chat fork (or a subagent) calling say would voice
+    // its answer twice: once here and once as its reply.
+    if (input.agentId !== undefined) return { deny: 'Only the main session speaks aloud; answer in text.' }
     const text = typeof input.text === 'string' ? input.text : ''
     if (text.trim() === '') return { deny: 'Nothing to say: pass non-empty text.' }
     if (!(await isEnabled($))) return { result: 'Narrator is off; nothing was spoken. Continue without speaking.' }

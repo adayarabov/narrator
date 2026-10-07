@@ -182,3 +182,13 @@ test('/narrator rejects unknown arguments', async ($, on) => {
 
   expect(text).toContain('Unknown argument')
 })
+
+test('say from a fork or subagent is refused, so a side-chat answer is not voiced twice', async ($, on) => {
+  mock.store(on)
+  const requests = relay(on)
+
+  const ran = await $.tool.call({ tool: SAY_TOOL, text: 'Хорошо, жди.', agentId: 'fork-1' } as never)
+
+  expect(ran.deny).toContain('Only the main session')
+  expect(requests.length).toBe(0)
+})
